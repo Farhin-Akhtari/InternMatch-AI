@@ -41,6 +41,21 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
         throw new ApiError(401, "Invalid access token.");
     }
 
+    // Verify current admin account permissions.
+    if (user.role === "admin") {
+     const isValidAdmin =
+        ["platform", "company"].includes(user.adminType) &&
+        user.emailVerified === true &&
+        user.accountStatus === "approved";
+
+     if (!isValidAdmin) {
+        throw new ApiError(
+            403,
+            "Your admin account is no longer authorized to access the platform."
+        );
+     }
+    }
+
     req.user = user;
     next();
 });

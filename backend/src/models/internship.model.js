@@ -11,6 +11,12 @@ const internshipSchema = new Schema({
         required: true,
         trim: true,
     },
+    owner: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+        index: true,
+    },
     description: {
         type: String,
         required: true,
@@ -19,10 +25,12 @@ const internshipSchema = new Schema({
     preferredSkills: {
         type: [String],
         default: [],
+        set: (skills) => skills.map((skill) => skill.trim()),
     },
     requiredSkills: {
         type: [String],
         required: true,
+        set: (skills) => skills.map((skill) => skill.trim()),
         validate: {
          validator: (skills) => skills.length > 0,
          message: "At least one required skill must be provided.",
@@ -65,6 +73,7 @@ const internshipSchema = new Schema({
 
         currency: {
             type: String,
+            enum: ["INR", "USD"],
             default: 'INR',
         },
     },

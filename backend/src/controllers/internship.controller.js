@@ -4,6 +4,16 @@ import { ApiError } from '../utils/ApiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import {ApiResponse} from "../utils/ApiResponse.js";
 
+// get all internship
+const getAllInternship = asyncHandler(async (req, res) => {
+    const interships = await Internship.find({})
+    .sort({createdAt: -1});
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200, interships,  "ALL INTERNSHIPS FETCHED SUCCESSFULLY."))
+})
+
 //get active internships
 const getActiveInternships = asyncHandler(async (req, res) => {
     const internships = await Internship.find ({
@@ -38,7 +48,6 @@ const getInternshipById = asyncHandler(async (req, res) => {
 const createInternship = asyncHandler(async (req, res) => {
     const {
         title, 
-        company, 
         description, 
         preferredSkills,
         requiredSkills, 
@@ -80,9 +89,21 @@ const createInternship = asyncHandler(async (req, res) => {
     }
  }
 
+ if (
+    req.user?.role !== "admin" ||
+    req.user?.adminType !== "company" ||
+    !req.user?.companyName
+ ){
+    throw new ApiError(
+        403,
+        "Only company admins with a registered company can create internships."
+    );
+  }
+
     const newInternship = await Internship.create({
          title,
-         company,
+         company: req.user.companyName,
+         owner: req.user._id,
          description,
          preferredSkills,
          requiredSkills,
@@ -166,7 +187,10 @@ const updateInternship = asyncHandler(async (req,res) => {
       ) {
          throw new ApiError(400, "Stipend must be an object.");
         }
-       const existingInternship = await Internship.findById(internshipId);
+       const existingInternship = await Internship.findOne({
+         _id: internshipId ,
+         owner: req.user._id,
+        });
 
         if (!existingInternship) {
            throw new ApiError(404, "Internship not found");
@@ -195,7 +219,10 @@ const updateInternship = asyncHandler(async (req,res) => {
     }
 
      //findByIdAndUpdate(id, update, options)
-    const updatedInternship = await Internship.findByIdAndUpdate(internshipId, 
+    const updatedInternship = await Internship.findOneAndUpdate({
+        _id: internshipId,
+        owner: req.user._id
+       },
        {
         $set: updatedData
        },
@@ -222,7 +249,10 @@ const deleteInternship = asyncHandler(async (req, res) => {
         throw new ApiError(400, "ID is not valid")
     }
 
-    const deletedInternship = await Internship.findByIdAndDelete(internshipId)
+    const deletedInternship = await Internship.findOneAndDelete({
+        _id: internshipId,
+        owner: req.user._id
+    });
     if(!deletedInternship){
         throw new ApiError(404, "Internship failed to delete")
     }
@@ -232,4 +262,4 @@ const deleteInternship = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "INTERNSHIP DELETED SUCCESSFULLY"))
 })
 
-export { getActiveInternships, getInternshipById, updateInternship, deleteInternship, createInternship };
+export { getAllInternship, getActiveInternships, getInternshipById, updateInternship, deleteInternship, createInternship };

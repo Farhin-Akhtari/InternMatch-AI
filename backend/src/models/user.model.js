@@ -46,6 +46,32 @@ const userSchema = new Schema({
         enum: ["student", "admin"],
         default: "student",
     },
+    adminType: {
+        type: String,
+        enum: ["platform", "company"],
+        default: null,
+    },
+    companyName: {
+        type: String,
+        trim: true,
+        maxlength: [150, "Company name must be 150 characters or fewer."],
+        default: null,
+    },
+    companyWebsite: {
+    type: String,
+    trim: true,
+    default: null,
+    },
+    emailVerified: {
+        type: Boolean,
+        default: false,
+    },
+
+    accountStatus: {
+        type: String,
+        enum: ["pending", "approved", "rejected"],
+        default: "approved",
+    }
 },{timestamps: true})
 
 // PASSWORD HASHING MIDDLEWARE

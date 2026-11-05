@@ -88,6 +88,20 @@ const getApplicantsForInternship = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, applications, "APPLICATION FETCHED SUCCESSFULLY."))
 })
 
+// get all application
+const getAllAplications = asyncHandler(async (req, res) => {
+    const applications = await Application.find()
+    .populate("student", "fullName email skills")
+    .populate("internship", "title company location workMode")
+    .sort({createdAt: -1});
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200, applications,applications.length === 0
+        ? "NO APPLICATIONS FOUND"
+        : "APPLICATION FETCHED SUCCESSFULLY."));
+})
+
 // update application status
 const updateApplicationStatus = asyncHandler(async (req, res) => {
     const {applicationId} = req.params;
@@ -115,4 +129,4 @@ const updateApplicationStatus = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, updateStatus, "APPLICATION STATUS UPDATED SUCCESSFULLY."))
 })
 
-export { applyToInternship, getMyApplications, getApplicantsForInternship, updateApplicationStatus };
+export { applyToInternship, getMyApplications, getApplicantsForInternship, getAllAplications, updateApplicationStatus };

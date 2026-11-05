@@ -7,30 +7,53 @@ dotenv.config();
 
 const createAdmin = async () => {
     await connectDB();
-    const adminEmail = process.env.ADMIN_EMAIL;
+
+    const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
     const adminPassword = process.env.ADMIN_PASSWORD;
 
     if (!adminEmail || !adminPassword) {
-     throw new Error("ADMIN_EMAIL and ADMIN_PASSWORD must be set in .env");
+        throw new Error("ADMIN_EMAIL and ADMIN_PASSWORD must be set in .env");
     }
 
-    let admin = await User.findOne({ email: adminEmail });
+    const existingUser = await User.findOne({ email: adminEmail });
 
-if (admin) {
-    admin.role = "admin";
-    await admin.save();
+    if (existingUser) {
+        if (existingUser.role !== "admin") {
+            throw new Error(
+                "This email belongs to an existing student. Admin promotion is not allowed."
+            );
+        }
 
-    console.log("Existing user promoted to admin.");
-} else {
-    admin = await User.create({
+        existingUser.adminType = "platform";
+        existingUser.emailVerified = true;
+        existingUser.accountStatus = "approved";
+
+        await existingUser.save();
+
+        console.log("Platform admin account verified and configured.");
+        return;
+    }
+
+    const existingPlatformAdmin = await User.findOne({
+        role: "admin",
+        adminType: "platform",
+    });
+
+    if (existingPlatformAdmin) {
+        throw new Error("A platform admin account already exists.");
+    }
+
+    await User.create({
         fullName: "InternMatch Admin",
         email: adminEmail,
         password: adminPassword,
         role: "admin",
+        adminType: "platform",
+        emailVerified: true,
+        accountStatus: "approved",
     });
 
-    console.log("Admin account created successfully.");
-}
+    console.log("Platform admin account created successfully.");
 };
 
 createAdmin()
