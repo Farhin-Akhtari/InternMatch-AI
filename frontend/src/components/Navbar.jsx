@@ -1,14 +1,28 @@
 import { useTheme } from "../context/ThemeContext.jsx";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import {FiMoon, FiSun} from "react-icons/fi";
 
 function Navbar() {
     const { theme, toggleTheme } = useTheme();
+    const { user, logout } = useAuth();
+    const navigate = useNavigate();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const closeMenu = () => {
         setIsMenuOpen(false);
+    };
+
+    const handleLogout = async () => {
+    closeMenu();
+
+    try {
+        await logout();
+        navigate("/login");
+    } catch (error) {
+        console.error("Logout failed:", error);
+    }
     };
 
     return (
@@ -67,30 +81,71 @@ function Navbar() {
                     >
                         Internships
                     </a>
+                     {!user ? (
+    <>
+        <Link
+            to="/login"
+            className="rounded-xl px-3 py-2 text-sm font-semibold text-[#71677D] transition hover:bg-pink-50 hover:text-teal-800 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-emerald-300"
+        >
+            Login
+        </Link>
 
-                    <button
-                        type="button"
-                        onClick={() =>
-                            window.alert(
-                                "Login will be available when we build authentication."
-                            )
-                        }
-                        className="rounded-xl px-3 py-2 text-sm font-semibold text-[#71677D] transition hover:bg-pink-50 hover:text-teal-800 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-emerald-300"
-                    >
-                        Login
-                    </button>
+        <Link
+            to="/signup"
+            className="rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800 dark:bg-emerald-400 dark:text-[#0B1020] dark:hover:bg-emerald-300 lg:px-5"
+        >
+            Sign Up
+        </Link>
+    </>
+) : (
+    <>
+        {user.role === "admin" ? (
+            <>
+                <Link
+                    to="/admin"
+                    className="rounded-xl px-3 py-2 text-sm font-semibold text-[#71677D] transition hover:bg-pink-50 hover:text-teal-800 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-emerald-300"
+                >
+                    Admin Dashboard
+                </Link>
 
-                    <button
-                        type="button"
-                        onClick={() =>
-                            window.alert(
-                                "Sign up will be available when we build authentication."
-                            )
-                        }
-                        className="rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 dark:bg-emerald-400 dark:text-[#0B1020] dark:hover:bg-emerald-300 lg:px-5"
-                    >
-                        Sign Up
-                    </button>
+                <Link
+                    to="/admin/internships/create"
+                    className="rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800 dark:bg-emerald-400 dark:text-[#0B1020] dark:hover:bg-emerald-300"
+                >
+                    Create Internship
+                </Link>
+            </>
+        ) : (
+            <>
+                <Link
+                    to="/my-applications"
+                    className="rounded-xl px-3 py-2 text-sm font-semibold text-[#71677D] transition hover:bg-pink-50 hover:text-teal-800 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-emerald-300"
+                >
+                    My Applications
+                </Link>
+
+                <Link
+                    to="/student-profile"
+                    className="rounded-xl px-3 py-2 text-sm font-semibold text-[#71677D] transition hover:bg-pink-50 hover:text-teal-800 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-emerald-300"
+                >
+                    My Profile
+                </Link>
+            </>
+        )}
+
+        <span className="text-sm font-semibold text-[#29253B] dark:text-white">
+            Hi, {user.fullName}
+        </span>
+
+        <button
+            type="button"
+            onClick={handleLogout}
+            className="rounded-xl px-4 py-2.5 text-sm font-semibold text-[#71677D] transition hover:bg-pink-50 hover:text-teal-800 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-emerald-300"
+        >
+            Logout
+        </button>
+    </>
+)}
 
                     <button
                     type="button"
@@ -164,23 +219,7 @@ function Navbar() {
                         >
                             Internships
                         </a>
-
-                        <div className="my-2 border-t border-pink-100 dark:border-slate-700" />
-
-                        <button
-                            type="button"
-                            onClick={() => {
-                                closeMenu();
-                                window.alert(
-                                    "Login will be available when we build authentication."
-                                );
-                            }}
-                            className="rounded-xl px-4 py-3 text-left text-sm font-semibold text-[#71677D] transition hover:bg-[#F9EAF5] hover:text-teal-800 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-emerald-300"
-                        >
-                            Login
-                        </button>
-
-                        <button
+                          <button
                         type="button"
                         onClick={() => {
                         closeMenu();
@@ -191,22 +230,81 @@ function Navbar() {
                       {theme === "light" ? "Dark Mode" : "Light Mode"}
                     </button>
 
-                        <button
-                            type="button"
-                            onClick={() => {
-                                closeMenu();
-                                window.alert(
-                                    "Sign up will be available when we build authentication."
-                                );
-                            }}
-                            className="mt-1 rounded-xl bg-teal-700 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-teal-800 dark:bg-emerald-400 dark:text-[#0B1020] dark:hover:bg-emerald-300"
-                        >
-                            Sign Up
-                        </button>
+                        <div className="my-2 border-t border-pink-100 dark:border-slate-700" />
 
-                    </div>
+                       {!user ? (
+    <>
+        <Link
+            to="/login"
+            onClick={closeMenu}
+            className="rounded-xl px-4 py-3 text-sm font-semibold text-[#71677D] transition hover:bg-[#F9EAF5] hover:text-teal-800 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-emerald-300"
+        >
+            Login
+        </Link>
+
+        <Link
+            to="/signup"
+            onClick={closeMenu}
+            className="rounded-xl bg-teal-700 px-4 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-teal-800 dark:bg-emerald-400 dark:text-[#0B1020] dark:hover:bg-emerald-300"
+        >
+            Sign Up
+        </Link>
+    </>
+) : (
+    <>
+      <div className="rounded-xl px-4 py-3 text-sm font-semibold text-[#29253B] dark:text-white">
+            Hi, {user.fullName}
+        </div>
+        {user.role === "admin" ? (
+            <>
+                <Link
+                    to="/admin"
+                    onClick={closeMenu}
+                    className="rounded-xl px-4 py-3 text-sm font-semibold text-[#71677D] transition hover:bg-[#F9EAF5] hover:text-teal-800 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-emerald-300"
+                >
+                    Admin Dashboard
+                </Link>
+
+                <Link
+                    to="/admin/internships/create"
+                    onClick={closeMenu}
+                    className="rounded-xl bg-teal-700 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-teal-800 dark:bg-emerald-400 dark:text-[#0B1020] dark:hover:bg-emerald-300"
+                >
+                    Create Internship
+                </Link>
+            </>
+        ) : (
+            <>
+                <Link
+                    to="/my-applications"
+                    onClick={closeMenu}
+                    className="rounded-xl px-4 py-3 text-sm font-semibold text-[#71677D] transition hover:bg-[#F9EAF5] hover:text-teal-800 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-emerald-300"
+                >
+                    My Applications
+                </Link>
+
+                <Link
+                    to="/student-profile"
+                    onClick={closeMenu}
+                    className="rounded-xl px-4 py-3 text-sm font-semibold text-[#71677D] transition hover:bg-[#F9EAF5] hover:text-teal-800 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-emerald-300"
+                >
+                    My Profile
+                </Link>
+            </>
+        )}
+
+        <button
+            type="button"
+            onClick={handleLogout}
+            className="rounded-xl px-4 py-3 text-left text-sm font-semibold text-[#71677D] transition hover:bg-[#F9EAF5] hover:text-teal-800 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-emerald-300"
+        >
+            Logout
+        </button>
+    </>
+    )}
                 </div>
-            )}
+            </div>
+         )}
         </header>
     );
 }

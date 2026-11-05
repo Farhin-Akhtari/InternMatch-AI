@@ -1,48 +1,110 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { getInternships } from "../services/internshipService.js";
 
-const internships = [
-    {
-        id: 1,
-        role: "Frontend Developer Intern",
-        company: "TechNova",
-        location: "Remote",
-        type: "Frontend",
-        skills: ["React", "JavaScript", "CSS"],
-        stipend: "₹15k–20k/month",
-        color: "pink",
-    },
-    {
-        id: 2,
-        role: "Backend Developer Intern",
-        company: "CloudCore",
-        location: "Hybrid",
-        type: "Backend",
-        skills: ["Node.js", "Express", "MongoDB"],
-        stipend: "₹18k–25k/month",
-        color: "teal",
-    },
-    {
-        id: 3,
-        role: "AI/ML Intern",
-        company: "NeuralWorks",
-        location: "Remote",
-        type: "AI/ML",
-        skills: ["Python", "Machine Learning", "Data"],
-        stipend: "₹20k–30k/month",
-        color: "blue",
-    },
-];
 
 const categories = ["All", "Frontend", "Backend", "AI/ML"];
+
+const getCategory = (internship) => {
+    const text = [
+        internship.title,
+        ...(internship.requiredSkills || []),
+        ...(internship.preferredSkills || []),
+    ].join(" ").toLowerCase();
+
+    if (/\b(frontend|front-end|react|html|css)\b/.test(text)) {
+        return "Frontend";
+    }
+
+    if (/\b(backend|back-end|node\.?js|express|api)\b/.test(text)) {
+        return "Backend";
+    }
+
+    if (/\b(ai|ml|machine learning|deep learning)\b/.test(text)) {
+        return "AI/ML";
+    }
+
+    return "Other";
+};
+
+
+const formatStipend = (stipend) => {
+    if (!stipend) return "Not specified";
+
+    const { min, max, currency } = stipend;
+    const symbol = currency === "INR" || !currency ? "₹" : `${currency} `;
+
+    if (min == null && max == null) return "Not specified";
+
+    const formatAmount = (amount) =>
+        new Intl.NumberFormat("en-IN").format(amount);
+
+    if (min != null && max != null) {
+        return `${symbol}${formatAmount(min)}–${formatAmount(max)}/month`;
+    }
+
+    return `${symbol}${formatAmount(min ?? max)}/month`;
+};
+
+
 
 function Home() {
     const [search, setSearch] = useState("");
     const [activeCategory, setActiveCategory] = useState("All");
     const [activeLocation, setActiveLocation] = useState("All");
 
+    const [internships, setInternships] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const fetchInternships = async () => {
+            try{
+                setLoading(true);
+                setError("");
+
+                const response = await getInternships();
+
+                setInternships(response.data);
+            }catch(error){
+                console.error("Failed to fetch internships: ", error);
+                setError(
+                    error.response?.data?.message || "Failed to load internships. Please try again."
+                );
+            }finally{
+                setLoading(false);
+            }
+        };
+        fetchInternships();
+    }, []);
+
+    const internshipsForUI = useMemo(() => {
+      return internships.map((internship) => ({
+        ...internship,
+        id: internship._id,
+        role: internship.title,
+        location: internship.workMode,
+        type: getCategory(internship),
+        skills: [
+            ...new Set([
+                ...(internship.requiredSkills || []),
+                ...(internship.preferredSkills || []),
+            ]),
+        ],
+        stipend: formatStipend(internship.stipend),
+        color:
+            getCategory(internship) === "Frontend"
+                ? "pink"
+                : getCategory(internship) === "Backend"
+                  ? "teal"
+                  : "blue",
+      }));
+    }, [internships]);
+
     // Filter internship data using the search and selected filters.
     const filteredInternships = useMemo(() => {
-        return internships.filter((internship) => {
+        return internshipsForUI.filter((internship) => {
             const matchesCategory =
                 activeCategory === "All" ||
                 internship.type === activeCategory;
@@ -71,7 +133,7 @@ function Home() {
                 matchesSearch
             );
         });
-    }, [search, activeCategory, activeLocation]);
+    }, [search, activeCategory, activeLocation, internshipsForUI]);
 
     const clearFilters = () => {
         setSearch("");
@@ -205,7 +267,7 @@ function Home() {
                             </div>
 
                             <div className="mt-6 space-y-3">
-                                {internships.map((internship) => (
+                                {internshipsForUI.slice(0, 3).map((internship) => (
                                     <div
                                         key={internship.id}
                                         className="flex items-center gap-3 rounded-2xl border border-[#F0E6F0] bg-white p-4 transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-[#0F172A]"
@@ -357,7 +419,7 @@ function Home() {
                             </h4>
 
                             <div className="mt-3 space-y-2">
-                                {["All", "Remote", "Hybrid"].map(
+                                {["All", "Remote", "Hybrid", "On-site"].map(
                                     (location) => (
                                         <button
                                             key={location}
@@ -460,24 +522,33 @@ function Home() {
                         </div>
 
                         {/* Internship cards */}
-                        <div className="mt-5 grid gap-5 xl:grid-cols-2">
-                            {filteredInternships.map((internship) => (
-                                <article
-                                    key={internship.id}
-                                    className="group rounded-2xl border border-[#EEE4EF] bg-white p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-teal-200 hover:shadow-lg hover:shadow-pink-100/50 dark:border-slate-700 dark:bg-[#111827] dark:hover:border-emerald-400/30 dark:hover:shadow-black/20 sm:p-6"
-                                >
-                                    <div className="flex items-start gap-4">
-                                        <div
-                                            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-lg font-bold ${
-                                                internship.color === "pink"
-                                                    ? "bg-pink-100 text-pink-700 dark:bg-pink-400/10 dark:text-pink-300"
-                                                    : internship.color === "teal"
-                                                      ? "bg-teal-100 text-teal-700 dark:bg-emerald-400/10 dark:text-emerald-300"
-                                                      : "bg-sky-100 text-sky-700 dark:bg-sky-400/10 dark:text-sky-300"
-                                            }`}
-                                        >
-                                            {internship.company.charAt(0)}
-                                        </div>
+                        {loading ? (
+    <p className="mt-5 text-center text-slate-500">
+        Loading internships...
+    </p>
+) : error ? (
+    <p role="alert" className="mt-5 text-center text-red-500">
+        {error}
+    </p>
+) : (
+        <div className="mt-5 grid gap-5 xl:grid-cols-2">
+             {filteredInternships.map((internship) => (
+                <article
+                     key={internship.id}
+                     className="group rounded-2xl border border-[#EEE4EF] bg-white p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-teal-200 hover:shadow-lg hover:shadow-pink-100/50 dark:border-slate-700 dark:bg-[#111827] dark:hover:border-emerald-400/30 dark:hover:shadow-black/20 sm:p-6"
+                >
+                     <div className="flex items-start gap-4">
+                       <div
+                         className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-lg font-bold ${
+                                internship.color === "pink"
+                                ? "bg-pink-100 text-pink-700 dark:bg-pink-400/10 dark:text-pink-300"
+                                : internship.color === "teal"
+                                ? "bg-teal-100 text-teal-700 dark:bg-emerald-400/10 dark:text-emerald-300"
+                                : "bg-sky-100 text-sky-700 dark:bg-sky-400/10 dark:text-sky-300"
+                                }`}
+                        >
+                            {internship.company.charAt(0)}
+                        </div>
 
                                         <div className="min-w-0 flex-1">
                                             <h3 className="text-base font-bold leading-6 transition group-hover:text-teal-800 dark:group-hover:text-emerald-300">
@@ -548,11 +619,7 @@ function Home() {
 
                                         <button
                                             type="button"
-                                            onClick={() =>
-                                                window.alert(
-                                                    "The internship details page will be built in a later step."
-                                                )
-                                            }
+                                            onClick={() => navigate(`/internships/${internship.id}`)}
                                             className="inline-flex items-center justify-center gap-2 rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 dark:bg-emerald-400 dark:text-[#0B1020] dark:hover:bg-emerald-300"
                                         >
                                             View details
@@ -562,9 +629,10 @@ function Home() {
                                 </article>
                             ))}
                         </div>
+                    )}
 
                         {/* Empty results state */}
-                        {filteredInternships.length === 0 && (
+                        {!loading && !error && filteredInternships.length === 0 && (
                             <div className="mt-5 rounded-2xl border border-dashed border-[#DCCDDD] bg-white px-6 py-14 text-center dark:border-slate-600 dark:bg-[#111827]">
                                 <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#F9EAF5] text-[#A24E85] dark:bg-slate-800 dark:text-emerald-300">
                                     <svg
