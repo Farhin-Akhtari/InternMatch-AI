@@ -29,7 +29,9 @@ export const AuthProvider = ({ children }) => {
             const userResponse = await getCurrentUser();
             setUser(userResponse.data.user);
         } catch (error) {
-            console.error("Session restoration failed:", error);
+            if(error.response?.status !== 401){
+                console.error("Session restoration failed:", error);
+            }
             setUser(null);
             updateAccessToken(null);
         } finally {

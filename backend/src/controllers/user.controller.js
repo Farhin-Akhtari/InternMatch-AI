@@ -347,22 +347,28 @@ const registerCompanyAdmin = asyncHandler(async (req, res) => {
     const verificationUrl =
         `${frontendUrl}/verify-company-email?token=${verificationToken}`;
 
+        let emailSent = true;
+
     try {
         await sendVerificationEmail(normalizedEmail, verificationUrl);
     } catch (error) {
+        emailSent = false;
         console.error("Company verification email failed:", error.message);
 
-        throw new ApiError(
-            502,
-            "Account created, but verification email could not be sent. Please contact support."
-        );
+        // Delete the verification token if email sending fails.
+       await EmailVerificationToken.deleteOne({
+           user: createdUser._id,
+           tokenHash,
+        });
     }
 
     return res.status(201).json(
         new ApiResponse(
             201,
-            { user: createdUser },
-            "Company admin registration submitted. Please verify your email."
+            { user: createdUser, emailSent },
+            emailSent
+            ? "Registration successful. Please verify your email."
+            : "Account created, but verification email could not be sent. Please try resending it."
         )
     );
 });

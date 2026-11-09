@@ -12,6 +12,10 @@ import ProtectedRoute from "../components/ProtectedRoute";
 import CreateInternship from "../pages/CreateInternship";
 import EditInternship from "../pages/EditInternship";
 import AdminApplications from "../pages/AdminApplications";
+import CompanyAdminRegister from "../pages/auth/CompanyAdminRegister"
+import CompanyEmailVerificationPending from "../pages/auth/CompanyEmailVerificationPending";
+import VerifyCompanyEmail from "../pages/auth/VerifyCompanyEmail";
+import CompanyPendingApproval from "../pages/auth/CompanyPendingApproval";
 
 function AppRoutes() {
     return (
@@ -29,6 +33,10 @@ function AppRoutes() {
                 <Route path="/admin/internships/edit/:internshipId" element={<ProtectedRoute allowedRole="admin"><EditInternship /></ProtectedRoute>} />
                 <Route path="/admin/applications" element={<ProtectedRoute allowedRole="admin"><AdminApplications /></ProtectedRoute>} />
                 </Route>
+                <Route path="/company-admin/register" element={<CompanyAdminRegister />} />
+                <Route path="/company-admin/verification-pending" element={<CompanyEmailVerificationPending />} />
+                <Route path="/verify-company-email" element={<VerifyCompanyEmail />} />
+                <Route path="/company-admin/pending-approval" element={<CompanyPendingApproval />} />
                 <Route path="*" element={<NotFound />} />
             </Routes>
         </BrowserRouter>
