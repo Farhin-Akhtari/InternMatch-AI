@@ -91,7 +91,7 @@ function Navbar() {
         </Link>
 
         <Link
-            to="/signup"
+            to="/register"
             className="rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800 dark:bg-emerald-400 dark:text-[#0B1020] dark:hover:bg-emerald-300 lg:px-5"
         >
             Sign Up
@@ -99,14 +99,22 @@ function Navbar() {
     </>
 ) : (
     <>
-        {user.role === "admin" ? (
-            <>
-                <Link
-                    to="/admin"
-                    className="rounded-xl px-3 py-2 text-sm font-semibold text-[#71677D] transition hover:bg-pink-50 hover:text-teal-800 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-emerald-300"
-                >
-                    Admin Dashboard
-                </Link>
+        {user.role === "admin" && user.adminType === "platform" ? (
+         <Link
+          to="/admin"
+          className="rounded-xl px-3 py-2 text-sm font-semibold text-[#71677D] transition hover:bg-pink-50 hover:text-teal-800 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-emerald-300"
+         >
+           Platform Dashboard
+         </Link>
+        ) : user.role === "admin" && user.adminType === "company" ? (
+        <>
+         <Link
+            to="/company-admin/dashboard"
+            className="rounded-xl px-3 py-2 text-sm font-semibold text-[#71677D] transition hover:bg-pink-50 hover:text-teal-800 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-emerald-300"
+         >
+            Company Dashboard
+         </Link>
+
 
                 <Link
                     to="/admin/internships/create"
@@ -243,7 +251,7 @@ function Navbar() {
         </Link>
 
         <Link
-            to="/signup"
+            to="/register"
             onClick={closeMenu}
             className="rounded-xl bg-teal-700 px-4 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-teal-800 dark:bg-emerald-400 dark:text-[#0B1020] dark:hover:bg-emerald-300"
         >
@@ -255,14 +263,22 @@ function Navbar() {
       <div className="rounded-xl px-4 py-3 text-sm font-semibold text-[#29253B] dark:text-white">
             Hi, {user.fullName}
         </div>
-        {user.role === "admin" ? (
-            <>
+        {user.role === "admin" && user.adminType === "platform" ? (
                 <Link
                     to="/admin"
                     onClick={closeMenu}
                     className="rounded-xl px-4 py-3 text-sm font-semibold text-[#71677D] transition hover:bg-[#F9EAF5] hover:text-teal-800 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-emerald-300"
                 >
-                    Admin Dashboard
+                    Platform Dashboard
+                </Link>
+                ) : user.role === "admin" && user.adminType === "company" ? (
+                <>
+                <Link
+                    to="/company-admin/dashboard"
+                    onClick={closeMenu}
+                    className="rounded-xl px-4 py-3 text-sm font-semibold text-[#71677D] transition hover:bg-[#F9EAF5] hover:text-teal-800 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-emerald-300"
+                >
+                    Company Dashboard
                 </Link>
 
                 <Link

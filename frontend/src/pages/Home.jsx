@@ -550,10 +550,16 @@ function Home() {
                             {internship.company.charAt(0)}
                         </div>
 
-                                        <div className="min-w-0 flex-1">
-                                            <h3 className="text-base font-bold leading-6 transition group-hover:text-teal-800 dark:group-hover:text-emerald-300">
+                                    <div className="min-w-0 flex-1">
+                                        <h3 className="text-base font-bold leading-6">
+                                            <button
+                                                type="button"
+                                                onClick={() => navigate(`/internships/${internship.id}`)}
+                                                className="text-left transition hover:text-pink-600 hover:underline dark:hover:text-emerald-300"
+                                            >
                                                 {internship.role}
-                                            </h3>
+                                            </button>
+                                        </h3>
 
                                             <p className="mt-1 text-sm text-[#71677D] dark:text-slate-400">
                                                 {internship.company}

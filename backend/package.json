@@ -21,7 +21,8 @@
     "express": "^5.3.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.11.2",
-    "resend": "^6.37.0"
+    "resend": "^6.37.0",
+    "tldts": "^7.5.4"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"

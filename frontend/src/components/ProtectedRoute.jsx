@@ -1,7 +1,7 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-function ProtectedRoute({children, allowedRole}) {
+function ProtectedRoute({children, allowedRole, allowedAdminType}) {
     const {user, authLoading} = useAuth();
 
     if(authLoading){
@@ -15,12 +15,20 @@ function ProtectedRoute({children, allowedRole}) {
         return <Navigate to="/login" replace />;
     }
     if (allowedRole && user.role !== allowedRole) {
-    return (
-        <Navigate
+      return (
+          <Navigate
             to={user.role === "admin" ? "/admin" : "/"}
             replace
-        />
-    );
+          />
+        );
+    }
+    if (allowedAdminType && user.adminType !== allowedAdminType) {
+        return (
+            <Navigate
+                to={user.adminType === "company" ? "/company-admin/dashboard" : "/admin"}
+                replace
+            />
+        );
     }
     return children;
 }

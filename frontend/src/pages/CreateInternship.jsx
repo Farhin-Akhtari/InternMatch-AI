@@ -32,6 +32,8 @@ function CreateInternship() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState("");
     const navigate = useNavigate();
+    const [requiredSkillsInput, setRequiredSkillsInput] = useState("");
+    const [preferredSkillsInput, setPreferredSkillsInput] = useState("");
 
     // Handles normal input fields
     const handleChange = (e) => {
@@ -65,6 +67,15 @@ function CreateInternship() {
     try {
         const internshipData = {
             ...formData,
+            requiredSkills: requiredSkillsInput
+            .split(",")
+            .map((skill) => skill.trim())
+            .filter((skill) => skill !== ""),
+
+            preferredSkills: preferredSkillsInput
+            .split(",")
+            .map((skill) => skill.trim())
+            .filter((skill) => skill !== ""),
             stipend: {
                 ...formData.stipend,
                 min: formData.stipend.min === ""
@@ -270,20 +281,12 @@ function CreateInternship() {
                                     <label className="mb-2 block text-sm font-semibold">
                                         Required Skills
                                     </label>
-                                    <input
-                                        type="text"
-                                        value={formData.requiredSkills.join(", ")}
-                                        onChange={(e) =>
-                                          setFormData((prev) => ({
-                                            ...prev,
-                                            requiredSkills: e.target.value
-                                                .split(",")
-                                                .map((skill) => skill.trim())
-                                                .filter((skill) => skill !== ""),
-                                            }))
-                                        }
-                                        placeholder="e.g. JavaScript, React, HTML, CSS"
-                                        className="w-full rounded-xl border border-slate-200 bg-[#FCFAFF] px-4 py-3 text-sm outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10 dark:border-slate-700 dark:bg-[#0B1020] dark:placeholder:text-slate-500"
+                                   <input
+                                     type="text"
+                                     value={requiredSkillsInput}
+                                     onChange={(e) => setRequiredSkillsInput(e.target.value)}
+                                     placeholder="e.g. JavaScript, React, HTML, CSS"
+                                     className="w-full rounded-xl border border-slate-200 bg-[#FCFAFF] px-4 py-3 text-sm outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10 dark:border-slate-700 dark:bg-[#0B1020] dark:placeholder:text-slate-500"
                                     />
                                     <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
                                         Separate each skill with a comma.
@@ -295,19 +298,11 @@ function CreateInternship() {
                                         Preferred Skills
                                     </label>
                                     <input
-                                        type="text"
-                                        value={formData.preferredSkills.join(", ")}
-                                        onChange={(e) =>
-                                            setFormData((prev) => ({
-                                                ...prev,
-                                                preferredSkills: e.target.value
-                                                .split(",")
-                                                .map((skill) => skill.trim())
-                                                .filter((skill) => skill !== ""),
-                                            }))
-                                        }
-                                        placeholder="e.g. TypeScript, Tailwind CSS"
-                                        className="w-full rounded-xl border border-slate-200 bg-[#FCFAFF] px-4 py-3 text-sm outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10 dark:border-slate-700 dark:bg-[#0B1020] dark:placeholder:text-slate-500"
+                                       type="text"
+                                       value={preferredSkillsInput}
+                                       onChange={(e) => setPreferredSkillsInput(e.target.value)}
+                                       placeholder="e.g. TypeScript, Tailwind CSS"
+                                       className="w-full rounded-xl border border-slate-200 bg-[#FCFAFF] px-4 py-3 text-sm outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10 dark:border-slate-700 dark:bg-[#0B1020] dark:placeholder:text-slate-500"
                                     />
                                     <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
                                         Optional skills that would be an advantage.

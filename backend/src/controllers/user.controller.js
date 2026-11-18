@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import mongoose, {isValidObjectId} from "mongoose";
 import jwt from "jsonwebtoken";
+import { getDomain } from "tldts"
 import { User } from "../models/user.model.js";
 import { Session } from "../models/session.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -266,6 +267,75 @@ const registerCompanyAdmin = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Company website must use HTTP or HTTPS.");
     }
 
+    // Block personal email providers for company registration.
+    const personalEmailProviders = new Set([
+    // Google
+    "gmail.com",
+    "googlemail.com",
+
+    // Microsoft
+    "outlook.com",
+    "outlook.in",
+    "hotmail.com",
+    "hotmail.co.uk",
+    "live.com",
+    "msn.com",
+
+    // Yahoo
+    "yahoo.com",
+    "yahoo.co.in",
+    "yahoo.in",
+    "ymail.com",
+    "rocketmail.com",
+
+    // Apple
+    "icloud.com",
+    "me.com",
+    "mac.com",
+
+    // Other international providers
+    "aol.com",
+    "aim.com",
+    "proton.me",
+    "protonmail.com",
+    "protonmail.ch",
+    "pm.me",
+    "tuta.com",
+    "tutanota.com",
+    "tutanota.de",
+    "gmx.com",
+    "gmx.net",
+    "gmx.de",
+    "mail.com",
+    "email.com",
+    "zoho.com",
+    "zohomail.com",
+    "yandex.com",
+    "yandex.ru",
+    "mail.ru",
+    "inbox.ru",
+    "qq.com",
+    "163.com",
+    "126.com",
+    "naver.com",
+
+    // Indian providers
+    "rediffmail.com",
+    "rediff.com",
+    ]);
+
+    const emailDomain = normalizedEmail.split("@")[1];
+
+    if (personalEmailProviders.has(emailDomain)) {
+      throw new ApiError(400, "Please use your official company email address.")
+    };
+
+    const websiteDomain = getDomain(parsedWebsite.hostname);
+
+    if(!websiteDomain || emailDomain !== websiteDomain){
+        throw new ApiError(400, "your comapny email domain must match your company website.");
+    }
+
     // Check whether the email already exists.
     const existingUser = await User.findOne({
         email: normalizedEmail,
@@ -347,28 +417,35 @@ const registerCompanyAdmin = asyncHandler(async (req, res) => {
     const verificationUrl =
         `${frontendUrl}/verify-company-email?token=${verificationToken}`;
 
-        let emailSent = true;
+      let emailSent = true;
 
-    try {
-        await sendVerificationEmail(normalizedEmail, verificationUrl);
-    } catch (error) {
-        emailSent = false;
-        console.error("Company verification email failed:", error.message);
+    if(process.env.NODE_ENV === "development") {
+          emailSent = false;
+       console.log("Development mode: Skipping verification email.");
+    } else {
+     try {
+         await sendVerificationEmail(normalizedEmail, verificationUrl);
+        } catch (error) {
+          emailSent = false;
+          console.error("Company verification email failed:", error.message);
 
         // Delete the verification token if email sending fails.
-       await EmailVerificationToken.deleteOne({
-           user: createdUser._id,
-           tokenHash,
-        });
+          await EmailVerificationToken.deleteOne({
+             user: createdUser._id,
+             tokenHash,
+            });
+        }
     }
 
     return res.status(201).json(
         new ApiResponse(
             201,
             { user: createdUser, emailSent },
-            emailSent
-            ? "Registration successful. Please verify your email."
-            : "Account created, but verification email could not be sent. Please try resending it."
+            process.env.NODE_ENV === "development"
+             ? "Registration successful. Email verification is skipped in development mode."
+             : emailSent
+             ? "Registration successful. Please verify your email."
+             : "Account created, but verification email could not be sent. Please try resending it."
         )
     );
 });
@@ -565,7 +642,7 @@ const approveCompanyAdminRequest = asyncHandler(async (req, res) => {
             },
         },
             {
-                new: true,
+                returnDocument: "after",
                 runValidators: true,
             }
     ).select("fullName email companyName companyWebsite role adminType emailVerified accountStatus ");
@@ -599,7 +676,7 @@ const rejectCompanyAdminRequest = asyncHandler(async (req, res) => {
             $set: { accountStatus: "rejected" },
         },
         {
-            new: true,
+            returnDocument: "after",
             runValidators: true,
         }
     ).select(

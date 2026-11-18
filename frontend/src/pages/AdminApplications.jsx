@@ -100,7 +100,7 @@ function AdminApplications() {
       <div className="mx-auto max-w-7xl">
 
         {/* Page Header */}
-<div className="mb-8 overflow-hidden rounded-3xl border border-[#B9DCD4] bg-gradient-to-br from-[#D5F0E5] via-[#C9E3F5] to-[#DCDCF5] p-7 shadow-md dark:border-[#285B54] dark:bg-gradient-to-br dark:from-[#172C2B] dark:via-[#1B3935] dark:to-[#20534A] sm:p-9">
+<div className="mb-8 overflow-hidden rounded-3xl border border-[#B9DCD4] bg-gradient-to-br from-[#D5F0E5] via-[#C9E3F5] to-[#DCDCF5] p-7 shadow-md transition-all duration-300 hover:shadow-[0_14px_32px_rgba(244,114,182,0.12)] dark:border-[#285B54] dark:bg-gradient-to-br dark:from-[#172C2B] dark:via-[#1B3935] dark:to-[#20534A] dark:shadow-[0_8px_24px_rgba(148,163,184,0.12)] dark:hover:shadow-[0_14px_32px_rgba(148,163,184,0.30)] sm:p-9">
 
   <p className="mb-2 text-sm font-semibold tracking-wider text-[#08796F] dark:text-[#55DCC1]">
     ADMINISTRATION / APPLICATIONS

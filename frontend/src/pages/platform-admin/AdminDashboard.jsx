@@ -1,8 +1,7 @@
-
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getAllInternships, deleteInternship } from "../services/internshipService";
-import { getAllApplications } from "../services/applicationServices";
+import { getAllInternships, deleteInternship } from "../../services/internshipService";
+import { getAllApplications } from "../../services/applicationServices";
 import {
     BriefcaseBusiness,
     Search,
@@ -366,9 +365,13 @@ function AdminDashboard() {
                                                         </div>
 
                                                         <div>
-                                                            <p className="font-semibold text-slate-800 dark:text-slate-100">
-                                                                {internship.title}
-                                                            </p>
+                                                           <button
+                                                             type="button"
+                                                             onClick={() => navigate(`/internships/${internship._id}`)}
+                                                             className="text-left font-semibold text-slate-800 transition hover:text-emerald-600 hover:underline dark:text-slate-100 dark:hover:text-emerald-400"
+                                                            >
+                                                             {internship.title}
+                                                            </button>
                                                             <p className="mt-1 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
                                                                 <Building2 size={13} />
                                                                 {internship.company}

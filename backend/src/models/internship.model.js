@@ -105,6 +105,10 @@ const internshipSchema = new Schema({
         enum: ["draft", "active", "closed"],
         default: "active",
     },
+    isDeleted: {
+        type: Boolean,
+        default: false,
+    }
 }, { timestamps: true });
 
 export const Internship = mongoose.model('Internship', internshipSchema);

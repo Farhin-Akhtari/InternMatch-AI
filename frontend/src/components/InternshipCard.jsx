@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {applyToInternship, getMyApplications} from "../services/applicationServices";
 
 
 function InternshipCard({ internship }) {
     const [isApplied, setIsApplied] = useState(false);
+    const navigate = useNavigate();
 
     useEffect(() => {
          console.log("Checking applications for:", internship._id);
@@ -42,11 +44,16 @@ const handleApply = async () => {
         }
     }
 };
-
     return (
         <article className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-900">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {internship.role}
+           <h3>
+               <button
+                 type="button"
+                 onClick={() => navigate(`/internships/${internship._id}`)}
+                 className="text-left text-lg font-semibold text-gray-900 transition hover:text-pink-600 hover:underline dark:text-white dark:hover:text-emerald-400"
+                >
+                  {internship.role}
+                </button>
             </h3>
 
             <p className="mt-1 text-gray-600 dark:text-slate-300">

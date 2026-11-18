@@ -12,7 +12,10 @@ const applyToInternship = asyncHandler(async (req, res) => {
         throw new ApiError(400, "INVALID INTERNSHIP ID");
     }
 
-    const internship = await Internship.findById(internshipId);
+    const internship = await Internship.findOne({
+        _id: internshipId,
+        isDeleted: { $ne: true }
+    });
     if(!internship){
         throw new ApiError(404, "Internship page not found")
     }
@@ -78,6 +81,14 @@ const getApplicantsForInternship = asyncHandler(async (req, res) => {
     if(!internship){
         throw new ApiError(404, "INTERNSHIP PAGE NOT FOUND")
     }
+
+    if (
+    req.user.adminType === "company" &&(!internship.owner ||
+    internship.owner.toString() !== req.user._id.toString())
+    ) {
+      throw new ApiError(403, "You are not authorized to view applicants for this internship.");
+     }
+
     const applications = await Application.find({
         internship: internshipId
     }).populate("student", "fullName email skills")
@@ -90,14 +101,26 @@ const getApplicantsForInternship = asyncHandler(async (req, res) => {
 
 // get all application
 const getAllAplications = asyncHandler(async (req, res) => {
-    const applications = await Application.find()
+    let query = {};
+
+    if(req.user.adminType === "company"){
+        const internships = await Internship.find({
+            owner: req.user._id
+        }).select("_id");
+        const internshipIds = internships.map(
+            (internship) => internship._id
+        );
+        query.internship = { $in: internshipIds};
+    }
+    const applications = await Application.find(query)
     .populate("student", "fullName email skills")
     .populate("internship", "title company location workMode")
     .sort({createdAt: -1});
 
     return res
     .status(200)
-    .json(new ApiResponse(200, applications,applications.length === 0
+    .json(new ApiResponse(200, applications,
+        applications.length === 0
         ? "NO APPLICATIONS FOUND"
         : "APPLICATION FETCHED SUCCESSFULLY."));
 })
@@ -109,10 +132,21 @@ const updateApplicationStatus = asyncHandler(async (req, res) => {
         throw new ApiError(400, "INVALID APPLICATION ID.")
     }
 
-    const application = await Application.findById(applicationId);
+    const application = await Application.findById(applicationId)
+    .populate({
+        path: "internship",
+        select: "owner",
+    });
     if(!application){
         throw new ApiError(404, "APPLICATION NOT FOUND.")
     }
+
+    if(req.user.adminType === "company" && (
+        !application.internship?.owner ||
+        application.internship.owner.toString() !== req.user._id.toString()
+     )){
+        throw new ApiError(403, "You are not authorized to update this application.");
+     }
 
     const {status} = req.body;
     const allowedStatus = ["reviewed", "accepted", "rejected"];

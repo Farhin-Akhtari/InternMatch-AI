@@ -6,7 +6,14 @@ import {ApiResponse} from "../utils/ApiResponse.js";
 
 // get all internship
 const getAllInternship = asyncHandler(async (req, res) => {
-    const interships = await Internship.find({})
+    let query = {
+        isDeleted: { $ne: true }
+    };
+    if(req.user.adminType === "company") {
+        query.owner = req.user._id;
+    }
+
+    const interships = await Internship.find(query)
     .sort({createdAt: -1});
 
     return res
@@ -18,6 +25,7 @@ const getAllInternship = asyncHandler(async (req, res) => {
 const getActiveInternships = asyncHandler(async (req, res) => {
     const internships = await Internship.find ({
         status: "active",
+        isDeleted: { $ne: true },
     }).sort({ createdAt: -1 });
     return res
     .status(200)
@@ -33,7 +41,8 @@ const getInternshipById = asyncHandler(async (req, res) => {
 
     const internship = await Internship.findById({
         _id: internshipId,
-        status: "active"
+        status: "active",
+        isDeleted: { $ne: true },
     });
     if(!internship){
         throw new ApiError(404, "Internship page not found")
@@ -189,7 +198,9 @@ const updateInternship = asyncHandler(async (req,res) => {
         }
        const existingInternship = await Internship.findOne({
          _id: internshipId ,
-         owner: req.user._id,
+         ...(req.user.adminType === "company" && {
+            owner: req.user._id,
+         }),
         });
 
         if (!existingInternship) {
@@ -221,7 +232,9 @@ const updateInternship = asyncHandler(async (req,res) => {
      //findByIdAndUpdate(id, update, options)
     const updatedInternship = await Internship.findOneAndUpdate({
         _id: internshipId,
-        owner: req.user._id
+        ...(req.user.adminType === "company" && {
+            owner: req.user._id,
+        }),
        },
        {
         $set: updatedData
@@ -249,10 +262,20 @@ const deleteInternship = asyncHandler(async (req, res) => {
         throw new ApiError(400, "ID is not valid")
     }
 
-    const deletedInternship = await Internship.findOneAndDelete({
+    const deletedInternship = await Internship.findOneAndUpdate({
         _id: internshipId,
-        owner: req.user._id
-    });
+        isDeleted: { $ne: true },
+        ...(req.user.adminType === "company" && {
+            owner: req.user._id,
+        }),
+    },
+    {
+        $set: { isDeleted: true },
+    },
+    {
+        returnDocument: "after",
+    }
+    );
     if(!deletedInternship){
         throw new ApiError(404, "Internship failed to delete")
     }

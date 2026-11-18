@@ -57,3 +57,27 @@ export const verifyCompanyEmail = async (token) => {
 
     return response.data;
 };
+
+
+export const getPendingCompanyAdminRequests = async () => {
+    const response = await api.get("users/admin/company-requests/pending");
+    return response.data;
+};
+
+
+// Approve a company admin request
+export const approveCompanyAdminRequest = async (userId) => {
+    const response = await api.patch(
+        `/users/admin/company-requests/${userId}/approve`
+    );
+    return response.data;
+};
+
+
+// Reject a company admin request
+export const rejectCompanyAdminRequest = async (userId) => {
+    const response = await api.patch(
+        `/users/admin/company-requests/${userId}/reject`
+    );
+    return response.data;
+};

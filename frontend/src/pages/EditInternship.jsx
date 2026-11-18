@@ -1,10 +1,17 @@
 import { useEffect, useState } from "react";
+import { useAuth } from "../context/AuthContext";
 import { useNavigate, useParams } from "react-router-dom";
 import { getInternshipById, updateInternship } from "../services/internshipService";
 
 function EditInternship(){
     const {internshipId} = useParams();
     const navigate = useNavigate();
+    const { user } = useAuth();
+
+    const dashboardPath =
+      user?.adminType === "company"
+        ? "/company-admin/dashboard"
+        : "/admin";
 
     const [loading, setLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -123,7 +130,7 @@ function EditInternship(){
 
          await updateInternship(internshipId, internshipData);
 
-         navigate("/admin");
+         navigate(dashboardPath);
         } catch (error) {
            setError(
             error.response?.data?.message ||
@@ -391,7 +398,7 @@ function EditInternship(){
 
      <button
         type="button"
-        onClick={() => navigate("/admin")}
+        onClick={() => navigate(dashboardPath)}
         className="rounded-xl border border-[#D2C0DC] px-6 py-3 text-sm font-semibold text-[#70577D] transition hover:bg-[#EEE3F2] dark:border-[#625777] dark:text-[#C8BBD9] dark:hover:bg-[#48405F]"
       >
         Cancel

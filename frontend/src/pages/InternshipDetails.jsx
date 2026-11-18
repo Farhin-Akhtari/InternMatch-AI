@@ -28,6 +28,12 @@ const formatStipend = (stipend) => {
 function InternshipDetails() {
     const { id } = useParams();
     const { user, authLoading } = useAuth();
+    const backPath =
+       user?.adminType === "company"
+       ? "/company-admin/internships"
+       : user?.adminType === "platform"
+       ? "/admin"
+       : "/";
 
     const[internship, setInternship] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -58,7 +64,7 @@ function InternshipDetails() {
     useEffect(() => {
     if (authLoading) return;
 
-    if (!user) {
+    if (!user || user.role !== "student") {
         setIsApplied(false);
         return;
     }
@@ -131,7 +137,7 @@ function InternshipDetails() {
              <div className="mx-auto max-w-5xl">
 
             <Link
-                to="/"
+                to={backPath}
                 className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-[#F9EAF5] dark:text-slate-300 dark:hover:bg-slate-800"
             >
                 ← Back to internships
@@ -238,7 +244,7 @@ function InternshipDetails() {
                                 </p>
                             </div>
                         </div>
-
+            {user?.role === "student" && (
              <button
                 type="button"
                onClick={handleApply}
@@ -247,6 +253,7 @@ function InternshipDetails() {
               >
               {applying ? "Applying..." : isApplied ? "Applied ✓" : "Apply Now"}
            </button>
+            )}
 
                {applicationMessage && (
                   <p
