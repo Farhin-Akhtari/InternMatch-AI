@@ -1039,11 +1039,217 @@ const getCurrentUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {user: req.user}, "CURRENT USER FETCHED SUCCESSFULLY."))
 });
 
+const isValidHttpUrl = (value) => {
+    try {
+        const url = new URL(value);
+        return url.protocol === "http:" || url.protocol === "https:";
+    } catch {
+        return false;
+    }
+}
+
 //update user profile
 const updateUserProfile = asyncHandler(async (req, res) => {
-    const {fullName, skills, preferredLocations, preferredWorkModes} = req.body?? {}
+    const {bio, fullName, skills, preferredLocations, preferredWorkModes, education, projects, professionalLinks} = req.body?? {};
 
     const updates = {};
+
+    if (bio !== undefined) {
+    if (typeof bio !== "string") {
+        throw new ApiError(400, "Bio must be a string.");
+    }
+
+    const trimmedBio = bio.trim();
+
+    if (trimmedBio.length > 500) {
+        throw new ApiError(400, "Bio must be 500 characters or fewer.");
+    }
+    
+    updates.bio = trimmedBio;
+    }
+
+    //EDUCATION
+    if(education !== undefined){
+        const currentYear = new Date().getFullYear();
+
+        if(!Array.isArray(education) || education.length > 10){
+             throw new ApiError(400, "Education must be an array containing up to 10 entries.");
+        }
+
+        for(const item of education){
+            if(!item || typeof item !== "object" || Array.isArray(item)){
+                throw new ApiError(400, "Each education entry must be a valid object.");
+            }
+
+            const{
+                institution,
+                degree,
+                fieldOfStudy = "",
+                startYear,
+                endYear = null,
+                currentlyStudying = false,
+            } = item;
+
+              if (
+            typeof institution !== "string" ||
+            !institution.trim() ||
+            institution.trim().length > 150
+        ) {
+            throw new ApiError(400, "Each education entry requires a valid institution name (maximum 150 characters).");
+        }
+
+        if (
+            typeof degree !== "string" ||
+            !degree.trim() ||
+            degree.trim().length > 100
+        ) {
+            throw new ApiError(400, "Each education entry requires a valid degree (maximum 100 characters).");
+        }
+
+        if (
+            typeof fieldOfStudy !== "string" ||
+            fieldOfStudy.trim().length > 100
+        ) {
+            throw new ApiError(400, "Field of study must be a string of at most 100 characters.");
+        }
+
+        if (
+            !Number.isInteger(startYear) ||
+            startYear < 1950 ||
+            startYear > currentYear
+        ) {
+            throw new ApiError(400, "Please provide a valid education start year.");
+        }
+
+        if (typeof currentlyStudying !== "boolean") {
+            throw new ApiError(400, "Currently studying must be true or false.");
+        }
+
+        if (currentlyStudying) {
+            if (endYear !== null) {
+                throw new ApiError(400, "End year must be empty while currently studying.");
+            }
+        } else {
+            if (
+                !Number.isInteger(endYear) ||
+                endYear < startYear ||
+                endYear > currentYear + 10
+            ) {
+                throw new ApiError(400, "Please provide a valid education end year.");
+            }
+        }
+        }
+        updates.education = education.map((item) => ({
+            institution: item.institution.trim(),
+            degree: item.degree.trim(),
+            fieldOfStudy: (item.fieldOfStudy ?? "").trim(),
+            startYear: item.startYear,
+            endYear: item.currentlyStudying ? null : item.endYear,
+            currentlyStudying: item.currentlyStudying ?? false,
+        }));
+    }
+
+    //PROJECT
+    if (projects !== undefined) {
+    if (!Array.isArray(projects) || projects.length > 20) {
+        throw new ApiError(400, "Projects must be an array containing up to 20 entries.");
+    }
+
+    for (const project of projects) {
+        if (!project || typeof project !== "object" || Array.isArray(project)) {
+            throw new ApiError(400, "Each project must be a valid object.");
+        }
+
+        const {
+            title,
+            description = "",
+            technologies = [],
+            githubUrl = "",
+            liveDemoUrl = "",
+        } = project;
+
+        if (
+            typeof title !== "string" ||
+            !title.trim() ||
+            title.trim().length > 100
+        ) {
+            throw new ApiError(400, "Each project requires a valid title (maximum 100 characters).");
+        }
+
+        if (
+            typeof description !== "string" ||
+            description.trim().length > 1000
+        ) {
+            throw new ApiError(400, "Project description must be at most 1000 characters.");
+        }
+
+        if (
+            !Array.isArray(technologies) ||
+            technologies.length > 20 ||
+            !technologies.every(
+                (tech) =>
+                    typeof tech === "string" &&
+                    tech.trim().length > 0 &&
+                    tech.trim().length <= 50
+            )
+        ) {
+            throw new ApiError(400, "Each project can have up to 20 valid technologies, each at most 50 characters.");
+        }
+
+        if (
+            typeof githubUrl !== "string" ||
+            (githubUrl.trim() && !isValidHttpUrl(githubUrl.trim()))
+        ) {
+            throw new ApiError(400, "Please provide a valid GitHub URL.");
+        }
+
+        if (
+            typeof liveDemoUrl !== "string" ||
+            (liveDemoUrl.trim() && !isValidHttpUrl(liveDemoUrl.trim()))
+        ) {
+            throw new ApiError(400, "Please provide a valid live demo URL.");
+        }
+    }
+
+    updates.projects = projects.map((project) => ({
+        title: project.title.trim(),
+        description: (project.description ?? "").trim(),
+        technologies: [
+            ...new Set(project.technologies.map((tech) => tech.trim())),
+        ],
+        githubUrl: (project.githubUrl ?? "").trim(),
+        liveDemoUrl: (project.liveDemoUrl ?? "").trim(),
+    })); 
+    }
+
+    //PROFESSIONAL LINKS
+    if (professionalLinks !== undefined) {
+    const allowedLinks = ["linkedin", "github", "portfolio"];
+
+    if (
+        !professionalLinks ||
+        typeof professionalLinks !== "object" ||
+        Array.isArray(professionalLinks)
+    ) {
+        throw new ApiError(400, "Professional links must be a valid object.");
+    }
+
+    for (const [key, value] of Object.entries(professionalLinks)) {
+        if (!allowedLinks.includes(key)) {
+            throw new ApiError(400, `Invalid professional link field: ${key}.`);
+        }
+
+        if (
+            typeof value !== "string" ||
+            (value.trim() && !isValidHttpUrl(value.trim()))
+        ) {
+            throw new ApiError(400, `Please provide a valid ${key} URL.`);
+        }
+
+        // Dot notation updates only the supplied link.
+        updates[`professionalLinks.${key}`] = value.trim();
+    }
+    }   
 
     if(fullName !== undefined){
         if(typeof fullName !== "string" || !fullName.trim()){

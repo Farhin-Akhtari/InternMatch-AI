@@ -7,6 +7,7 @@ import userRouter from "./routes/user.route.js"
 import internshipRouter from "./routes/internship.route.js"
 import savedInternshipRouter from "./routes/savedInternship.route.js"
 import applicationRouter from "./routes/application.route.js"
+import resumeRouter from "./routes/resume.route.js"
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.use("/api/v1/users", userRouter);
 app.use("/api/v1/internships", internshipRouter);
 app.use("/api/v1/saved-internships", savedInternshipRouter);
 app.use("/api/v1/applications", applicationRouter);
+app.use("/api/v1/resumes", resumeRouter);
 
 app.use((req, res) => {
     res.status(404).json({

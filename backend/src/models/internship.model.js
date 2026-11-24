@@ -14,7 +14,7 @@ const internshipSchema = new Schema({
     owner: {
         type: Schema.Types.ObjectId,
         ref: "User",
-        required: true,
+        required: true, 
         index: true,
     },
     description: {

@@ -2,11 +2,132 @@ import mongoose, {Schema} from "mongoose";
 import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
 
+
+const educationSchema = new Schema({
+    institution: {
+        type: String,
+        required: true,
+        trim: true,
+    },
+    degree: {
+        type: String,
+        required: true,
+        trim: true,
+    },
+    fieldOfStudy: {
+        type: String,
+        trim: true,
+        default: "",
+    },
+    startYear: {
+        type: Number,
+        required: true,
+    },
+    endYear: {
+        type: Number,
+        default: null,
+    },
+    currentlyStudying: {
+        type: Boolean,
+        default: false,
+    },
+});
+
+const projectSchema = new Schema({
+    title: {
+        type: String,
+        required: true,
+        trim: true,
+    },
+    description: {
+        type: String,
+        trim: true,
+        maxlength: [1000, "Project description must be 1000 characters or fewer."],
+        default: "",
+    },
+    technologies: {
+        type: [String],
+        default: [],
+    },
+    githubUrl: {
+        type: String,
+        trim: true,
+        default: "",
+    },
+    liveDemoUrl: {
+        type: String,
+        trim: true,
+        default: "",
+    },
+});
+
+const resumeSchema = new Schema({
+        publicId: {
+           type: String,
+           required: true,
+        },
+        format: {
+            type: String,
+            default: "pdf",
+        },
+        fileName: {
+            type: String,
+            required: true,
+            trim: true,
+        },
+        bytes: {
+            type: Number,
+            required: true,
+        },
+        uploadedAt: {
+            type: Date,
+            default: Date.now,
+        },
+});
+
+
 const userSchema = new Schema({
     fullName: {
         type: String,
         required: true,
         trim: true,
+    },
+    bio: {
+        type: String,
+        trim: true,
+        maxLength: [500, "Bio must be 500 characters or fewer."],
+        default: "",
+    },
+    education: {
+        type: [educationSchema],
+        default: [],
+    },
+
+    projects: {
+        type: [projectSchema],
+        default: [],
+    },
+
+    professionalLinks: {
+        linkedin: {
+          type: String,
+          trim: true,
+          default: "",
+        },
+        github: {
+          type: String,
+          trim: true,
+          default: "",
+        },
+        portfolio: {
+          type: String,
+          trim: true,
+          default: "",
+        },
+    },
+    resume: {
+        type: resumeSchema,
+        default: null,
     },
     email: {
       type: String,

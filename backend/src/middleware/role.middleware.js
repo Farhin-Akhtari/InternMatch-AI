@@ -31,3 +31,13 @@ export const verifyCompanyAdmin = asyncHandler(async (req, res, next) => {
 
     next();
 });
+
+
+export const verifyStudent = asyncHandler(async (req, res, next) => {
+    if(req.user?.role !== "student"){
+        throw new ApiError(403, "Access denied. Students only.");
+    }
+
+    next();
+});
+

@@ -15,6 +15,16 @@ const errorHandler = (err, req, res, next) => {
         message = "A record with this value already exists.";
     }
 
+    // Multer file upload errors
+    if (err.name === "MulterError") {
+     if (err.code === "LIMIT_FILE_SIZE") {
+        statusCode = 413;
+        message = "Resume must not exceed 5 MB.";
+     } else {
+        statusCode = 400;
+        message = "Invalid file upload.";
+     }
+    }
     // Mongoose schema validation errors
     if (err instanceof SyntaxError && err.status === 400 && "body" in err) {
     statusCode = 400;
