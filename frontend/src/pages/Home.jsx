@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext.jsx";
 import { getInternships } from "../services/internshipService.js";
-
+import { getSavedInternships } from "../services/savedInternshipServices.js";
+import SavedInternshipButton from "../components/SavedInternshihpButton.jsx";
 
 const categories = ["All", "Frontend", "Backend", "AI/ML"];
 
@@ -54,9 +56,11 @@ function Home() {
     const [activeLocation, setActiveLocation] = useState("All");
 
     const [internships, setInternships] = useState([]);
+    const [savedInternshipIds, setSavedInternshipIds] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const navigate = useNavigate();
+    const { user, authLoading } = useAuth();
 
     useEffect(() => {
         const fetchInternships = async () => {
@@ -78,6 +82,36 @@ function Home() {
         };
         fetchInternships();
     }, []);
+
+    useEffect(() => {
+     if (authLoading) return;
+
+      if (user?.role !== "student") {
+        setSavedInternshipIds([]);
+        return;
+      }
+
+     const fetchSavedInternships = async () => {
+        try {
+            const response = await getSavedInternships();
+
+            const savedIds = response.data
+                .filter(saved => saved.internship?._id)
+                .map(saved => saved.internship._id);
+
+            setSavedInternshipIds(savedIds);
+
+        } catch (error) {
+            console.error(
+                "Failed to fetch saved internships:",
+                error.response?.data || error.message
+            );
+        }
+     };
+
+      fetchSavedInternships();
+
+    }, [authLoading, user]);
 
     const internshipsForUI = useMemo(() => {
       return internships.map((internship) => ({
@@ -139,6 +173,16 @@ function Home() {
         setSearch("");
         setActiveCategory("All");
         setActiveLocation("All");
+    };
+
+    const handleSavedChange = (internshipId, isSaved) => {
+     setSavedInternshipIds(prevIds => {
+        if (isSaved) {
+            return [...prevIds, internshipId];
+        }
+
+        return prevIds.filter(id => id !== internshipId);
+     });
     };
 
     return (
@@ -566,29 +610,11 @@ function Home() {
                                             </p>
                                         </div>
 
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                window.alert(
-                                                    "Saved internships will be available when we implement authentication and saved-job functionality."
-                                                )
-                                            }
-                                            aria-label={`Save ${internship.role}`}
-                                            title="Save internship (demo)"
-                                            className="rounded-lg p-2 text-[#A39AAA] transition hover:bg-pink-50 hover:text-pink-600 dark:hover:bg-slate-800 dark:hover:text-pink-300"
-                                        >
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                strokeWidth="1.7"
-                                                className="h-5 w-5"
-                                                aria-hidden="true"
-                                            >
-                                                <path d="M6 4.75A1.75 1.75 0 0 1 7.75 3h8.5A1.75 1.75 0 0 1 18 4.75V21l-6-3.75L6 21V4.75Z" />
-                                            </svg>
-                                        </button>
+                                       <SavedInternshipButton
+                                         internshipId={internship._id}
+                                         initiallySaved={savedInternshipIds.includes(internship._id)}
+                                         onSavedChange={handleSavedChange}
+                                        />
                                     </div>
 
                                     <div className="mt-5 flex flex-wrap gap-2">

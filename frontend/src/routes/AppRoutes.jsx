@@ -20,6 +20,7 @@ import CompanyAdminRequests from "../pages/platform-admin/CompanyAdminRequests";
 import CompanyDashboard from "../pages/company-admin/CompanyDashboard";
 import CompanyInternships from "../pages/company-admin/CompanyInternships";
 import RegistrationChoice from "../pages/RegistrationChoice";
+import SavedInternships from "../pages/SavedInternships"
 
 function AppRoutes() {
     return (
@@ -33,6 +34,7 @@ function AppRoutes() {
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/student-profile" element={<ProtectedRoute allowedRole="student"><StudentProfile /></ProtectedRoute>} />
+                <Route path="/saved-internships" element={<ProtectedRoute allowedRole="student"><SavedInternships /></ProtectedRoute>} />
                 <Route path="/admin" element={<ProtectedRoute allowedRole="admin" allowedAdminType="platform"><AdminDashboard /></ProtectedRoute>} />
                 <Route path="/admin/internships/create" element={<ProtectedRoute allowedRole="admin"><CreateInternship /></ProtectedRoute>} />
                 <Route path="/admin/internships/edit/:internshipId" element={<ProtectedRoute allowedRole="admin"><EditInternship /></ProtectedRoute>} />
