@@ -12,7 +12,10 @@ const saveInternship = asyncHandler(async (req, res) => {
             throw new ApiError(400, "ID is not valid")
         }
     
-        const internship = await Internship.findById(internshipId);
+        const internship = await Internship.findOne({
+            _id: internshipId,
+            isDeleted: false
+        });
         if(!internship){
             throw new ApiError(404, "Internship page not found")
         }
@@ -20,6 +23,18 @@ const saveInternship = asyncHandler(async (req, res) => {
         if(internship.status !== "active"){
             throw new ApiError(400, "This internship is not available to save");
         }
+        
+        if(internship.deadline){
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            const deadline = new Date(internship.deadline);
+            deadline.setHours(0, 0, 0, 0);
+
+            if(deadline < today){
+                throw new ApiError(400, "This internship has expired.")
+            }
+        }   
 
         const existingSavedInternships = await SavedInternship.findOne({
             user: req.user._id,
@@ -59,7 +74,7 @@ const saveInternship = asyncHandler(async (req, res) => {
 const getSavedInternship = asyncHandler(async (req, res) => {
     const savedinternship = await SavedInternship.find({
         user: req.user._id
-    }).populate("internship",  "title company description preferredSkills requiredSkills location workMode stipend applicationUrl deadline status") 
+    }).populate("internship",  "title company description preferredSkills requiredSkills location workMode stipend applicationUrl deadline status isDeleted") 
       .sort({createdAt: -1});
 
       return res
